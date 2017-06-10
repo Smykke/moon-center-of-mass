@@ -40,25 +40,58 @@ function getSmallest (pointList)
   return small[2]
 end
 
-function getMostDistant (pointList, small)
-  distant = {0, small}
-  for p = 2, #pointList do
-    distance = euclidean(pointList[p], small)
-    if distance > distant[1] then
-      distant[1] = distance
-      distant[2] = pointList[p]
-    elseif distance == distant[1] then
-      c = 1
-      while pointList[p][c] == distant[2][c] do c = c + 1 end
-      if pointList[p][c] < distant[2][c] then distant = {distance, pointList[p]} end
+function getMostDistant (pointList, previouslySelected, point)
+  print("pontos analisados:")
+  printPoints(pointList)
+  print("pontos selecionados:")
+  printPoints(previouslySelected)
+
+  distant = {0, point}
+  for p = 1, #pointList do
+    if not inList(previouslySelected, pointList[p]) then
+      print("considerando o ponto", pointList[p]["l"])
+      distance = euclidean(pointList[p], point)
+      if (distance > distant[1]) then   -- Check if the number has already been selected
+        distant[1] = distance
+        distant[2] = pointList[p]
+      elseif distance == distant[1] then distant[2] = smallestCoord(distant[2], pointList[p])
+      end
     end
   end
   return distant[2]
 end
 
+function smallestCoord (point1, point2)
+  c = 1
+  while c <= #point1 do
+    if point1[c] < point2[c] then return point1
+    elseif point2[c] < point1[c] then return point2
+    end
+    c = c + 1
+  end
+  return point1
+end
+
+function inList(pointList, point)
+  if isEmpty(pointList) then return false end
+  for k, p in ipairs(pointList) do
+    if p.l == point.l then
+      print("o ponto", p.l, "esta na lista")
+      return true
+    end
+  end
+  -- print("não retornei")
+  return false
+end
+
+function isEmpty(pointList)
+  if not next(pointList) then return true end
+  return false
+end
+
 function getNearest (centroidList, point)
   near = {0, centroidList[1]}
-  for p = 2, #centroidList do
+  for p = 1, #centroidList do
     distance = euclidean(centroidList[p], point)
     if distance < near[1] then
       near[1] = distance
@@ -89,6 +122,7 @@ function getCentroid (pointList)
     for p = 1, #pointList do sum = sum + pointList[p][i] end
     centroid[i] = sum/#pointList
   end
+  print("ret centroid: ", centroid[1], centroid[2], centroid[3])
   return centroid
 end
 
@@ -97,16 +131,16 @@ end
 
 ------- EXTRA FUNCTIONS -------
 function printPoints (pointList)
-  --  print("Tam: ", len)
-  for p = 1, #pointList do
-    print("Ponto", p)
-    for q = 1, 4 do
-      print(allPoints[p][q])
-    end
+  if isEmpty(pointList) then print("Empty list") end
+  for n, p in ipairs(pointList) do
+    print("Ponto ", p.l)
+    --for i = 1, #p do
+      --print(p[i])
+    --end
   end
 end
 
-function getGroups (pointList, centroidList)
+-- function getGroups (pointList, centroidList)
 
 
 
@@ -119,26 +153,41 @@ io.input(inputFile)
 
 print("\"entrada.txt\" file open.\n")
 
+--print(#arg)
+groups = tonumber(arg[1])
+print("Quantidade de grupos:", groups)
+
 ------- READ POINTS -------
-allPoints = pointsFromFile()
-printPoints(allPoints, size)
+allPoints = pointsFromFile()  -- INSERT THE OPEN FILE PROCESSES INTO THIS FUNCTION?
+--printPoints(allPoints)
+selected = {}
 
-------- GET THE SMALLEST -------
--- for p = 1, i-1 do
---   print("Soma: ", sumPoint(allPoints[p]))
--- end
-
+------- FIRST ITERATION -------
 smallest = getSmallest(allPoints)
 print("The smallest sum is from point:", smallest.l)
+table.insert(selected, smallest)
 
-mostDistant = getMostDistant(allPoints, smallest)
+mostDistant = getMostDistant(allPoints, selected, smallest)
 print("The mostDistant from point", smallest.l, "is point", mostDistant.l)
 
-fcentroid = getCentroid({smallest, mostDistant})
-print("The centroid is", fcentroid[1], fcentroid[2], fcentroid[3], fcentroid[4])
+table.insert(selected, mostDistant)
 
-centroids = {smalles, mostDistant, fcentroid}
-groups = getGroups(allPoints, centroids)
+k = groups - 2
+while (k > 0) do
+  fcentroid = getCentroid(selected)
+  --print("f centroid", fcentroid[1])
+  --table.insert(selected, fcentroid)
+  new = getMostDistant(allPoints, selected, fcentroid)
+  print("ULtimo centro: ", new.l)
+  table.insert(selected, new)
+  k = k - 1
+end
+
+
+print("The centroids are:")
+printPoints(selected)
+
+-- groups = getGroups(allPoints, centroids)
 
 ------- END OF EXECUTION -------
 io.input():close()
