@@ -41,15 +41,15 @@ function getSmallest (pointList)
 end
 
 function getMostDistant (pointList, previouslySelected, point)
-  print("pontos analisados:")
-  printPoints(pointList)
-  print("pontos selecionados:")
-  printPoints(previouslySelected)
+  -- print("pontos analisados:")
+  -- printPoints(pointList)
+  -- print("pontos selecionados:")
+  -- printPoints(previouslySelected)
 
   distant = {0, point}
   for p = 1, #pointList do
     if not inList(previouslySelected, pointList[p]) then
-      print("considerando o ponto", pointList[p]["l"])
+      -- print("considerando o ponto", pointList[p]["l"])
       distance = euclidean(pointList[p], point)
       if (distance > distant[1]) then   -- Check if the number has already been selected
         distant[1] = distance
@@ -76,7 +76,7 @@ function inList(pointList, point)
   if isEmpty(pointList) then return false end
   for k, p in ipairs(pointList) do
     if p.l == point.l then
-      print("o ponto", p.l, "esta na lista")
+      -- print("o ponto", p.l, "esta na lista")
       return true
     end
   end
@@ -89,20 +89,20 @@ function isEmpty(pointList)
   return false
 end
 
-function getNearest (centroidList, point)
-  near = {0, centroidList[1]}
-  for p = 1, #centroidList do
-    distance = euclidean(centroidList[p], point)
+
+function getNearest (pointList, point)
+  local near = {euclidean(pointList[1], point), pointList[1]}
+
+  for p = 2, #pointList do
+    distance = euclidean(pointList[p], point)
     if distance < near[1] then
       near[1] = distance
       near[2] = pointList[p]
-    elseif distance == distant[1] then
-      c = 1
-      while pointList[p][c] == distant[2][c] do c = c + 1 end
-      if pointList[p][c] < distant[2][c] then distant = {distance, pointList[p]} end
+    elseif distance == near[1] then near[2] = smallestCoord(near[2], pointList[p])
     end
   end
-  return distant[2]
+
+  return near[2]
 end
 
 
@@ -126,6 +126,14 @@ function getCentroid (pointList)
   return centroid
 end
 
+function getPosition (pointList, point)
+  for k, p in ipairs(pointList) do
+    for i = 1, #p do
+      if p[i] ~= point[i] then break end
+      return k
+    end
+  end
+end
 
 
 
@@ -140,7 +148,29 @@ function printPoints (pointList)
   end
 end
 
--- function getGroups (pointList, centroidList)
+function printGroups (group)
+  for i = 1, #group do
+    print(group[i])
+  end
+end
+
+function getGroups (pointList, centroidList)
+  -- Inicialização da tabela (senão table.insert() não funciona)
+  groups = {}
+  for i = 1, #centroidList do
+    groups[i] = {}
+  end
+
+  for k, p in ipairs(pointList) do
+    nearCentroid = getNearest(centroidList, p)
+    centroidPosition = getPosition(centroidList, nearCentroid)
+    table.insert(groups[centroidPosition], p.l)
+  end
+  return groups
+end
+
+
+
 
 
 
@@ -183,9 +213,18 @@ while (k > 0) do
   k = k - 1
 end
 
-
 print("The centroids are:")
 printPoints(selected)
+groupsList = getGroups(allPoints, selected)
+
+print("Os grupos são:")
+for k, t in ipairs(groupsList) do
+  print("GROUP", k)
+  printGroups(t)
+end
+
+
+
 
 -- groups = getGroups(allPoints, centroids)
 
