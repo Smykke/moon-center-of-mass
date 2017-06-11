@@ -1,13 +1,15 @@
-------- FUNÇÕES -------
+------- READ FROM FILE -------
+-- Output: list of points from input file
+-- *the input is defined in "main"
 function pointsFromFile()
   pointList = {}
   i = 1
   for line in io.lines() do
     point = {}
-    for w in string.gmatch(line, "%d+%.?%d*") do   --or "%S+" (everything that is not a space)
-      table.insert(point, tonumber(w))  -- Store the coordenates
+    for w in string.gmatch(line, "%d+%.?%d*") do   -- or "%S+" (everything that is not a space)
+      table.insert(point, tonumber(w))  -- store the coordenates
     end
-    point.l = i  -- Store the line number
+    point.l = i  -- store the line number
     pointList[i] = point
     i = i + 1
     size = i
@@ -15,17 +17,23 @@ function pointsFromFile()
   return pointList
 end
 
-
+------- SUM OF COORDENATES OF A POINT -------
+-- Input: point
+-- Output: Sum of the coordenates
 function sumPoint (point)
   local sum = 0
-  for r = 1, #point do   --change here
+  for r = 1, #point do
     sum = sum + point[r]
   end
   return sum
 end
 
+------- SMALLEST SUM OF COORDENATES -------
+-- Input: list of (all) points
+-- Output: point that has the minimum sum of coordenates
 function getSmallest (pointList)
-  small = {sumPoint(pointList[1]), pointList[1]}
+  small = {sumPoint(pointList[1]), pointList[1]} -- the first point is the default
+
   for p = 2, #pointList do
     sum = sumPoint(pointList[p])
     if sum < small[1] then
@@ -40,20 +48,19 @@ function getSmallest (pointList)
   return small[2]
 end
 
+------- SUM OF A POINT'S COORDENATES -------
+-- Input: list of points, centroids/points already selected and the reference point
+-- Output: point that is the most distant from the reference point
 function getMostDistant (pointList, previouslySelected, point)
-  -- print("pontos analisados:")
-  -- printPoints(pointList)
-  -- print("pontos selecionados:")
-  -- printPoints(previouslySelected)
+  distant = {0, point} -- the reference point itself is the default
 
-  distant = {0, point}
   for p = 1, #pointList do
-    if not inList(previouslySelected, pointList[p]) then
-      -- print("considerando o ponto", pointList[p]["l"])
+    if not inList(previouslySelected, pointList[p]) then -- check if the point is not a part of centroids
       distance = euclidean(pointList[p], point)
-      if (distance > distant[1]) then   -- Check if the number has already been selected
+      if (distance > distant[1]) then
         distant[1] = distance
         distant[2] = pointList[p]
+      -- in case of same distance:
       elseif distance == distant[1] then distant[2] = smallestCoord(distant[2], pointList[p])
       end
     end
@@ -61,6 +68,9 @@ function getMostDistant (pointList, previouslySelected, point)
   return distant[2]
 end
 
+------- GET THE POINT THAT HAS THE SMALLEST COORDENATES -------
+-- Input: two points to be compared (this function is a tie braker)
+-- Output: the point which has the smallest coordenates
 function smallestCoord (point1, point2)
   c = 1
   while c <= #point1 do
@@ -72,24 +82,31 @@ function smallestCoord (point1, point2)
   return point1
 end
 
+------- CHECK IF A POINT IS PART OF A LIST -------
+-- Input: list of points and a point
+-- Output: True or False
 function inList(pointList, point)
   if isEmpty(pointList) then return false end
+
   for k, p in ipairs(pointList) do
     if p.l == point.l then
-      -- print("o ponto", p.l, "esta na lista")
       return true
     end
   end
-  -- print("não retornei")
   return false
 end
 
+------- CHECK IF A LIST IS EMPTY -------
+-- Input: list of points
+-- Output: True or False
 function isEmpty(pointList)
   if not next(pointList) then return true end
   return false
 end
 
-
+------- GET THE NEAREST POINT -------
+-- Input: list of points and a reference point
+-- Output: a point from the list that is nearest from reference point
 function getNearest (pointList, point)
   local near = {euclidean(pointList[1], point), pointList[1]}
 
@@ -105,7 +122,9 @@ function getNearest (pointList, point)
   return near[2]
 end
 
-
+------- EUCLIDEAN DISTANCE -------
+-- Input: two points
+-- Output: distance between them
 function euclidean(p1, p2)
   sum = 0
   for p = 1, #p1 do
@@ -114,6 +133,9 @@ function euclidean(p1, p2)
   return sum^0.5 -- similar to math.sqrt(sum)
 end
 
+------- GET CENTROID OF A GROUP -------
+-- Input: list of points
+-- Output: centroid
 function getCentroid (pointList)
   centroid = {}
   dimensions = #pointList[1]
@@ -122,10 +144,12 @@ function getCentroid (pointList)
     for p = 1, #pointList do sum = sum + pointList[p][i] end
     centroid[i] = sum/#pointList
   end
-  -- print("ret centroid: ", centroid[1], centroid[2], centroid[3])
   return centroid
 end
 
+------- GET A POINT'S POSITION IN A LIST -------
+-- Input: list of points and a point
+-- Output: the point's position
 function getPosition (pointList, point)
   for k, p in ipairs(pointList) do
     for i = 1, #p do
@@ -135,6 +159,9 @@ function getPosition (pointList, point)
   end
 end
 
+------- COMPARE IF TWO LISTS ARE EQUAL -------
+-- Input: two lists
+-- Output: True of False
 function isEqual (pointList1, pointList2)
   len = #pointList1
   for i = 1, len do
@@ -145,126 +172,103 @@ function isEqual (pointList1, pointList2)
   return true
 end
 
-
-
-------- EXTRA FUNCTIONS -------
+------- PRINT POINTS -------
+-- Input: list of points
+-- Output: all points' line numbers printed on output stream defined by io.output
 function printPoints (pointList)
   if isEmpty(pointList) then print("Empty list") end
+
   for i = 1, #pointList - 1 do
     io.write(pointList[i].l, ", ")
   end
-  io.write(pointList[#pointList].l)
+  io.write(pointList[#pointList].l) -- different format for the last number
 end
 
-function printGroups (group)
-  for i = 1, #group do
-    io.write(group[i], " ")
+------- PRINT GROUPS -------
+-- Input: list of groups (table of tables of integers/line numbers)
+-- Output: all points' line numbers printed on output stream defined by io.output organized into groups
+function printGroups (groupList)
+  for k, t in ipairs(groupList) do
+    printPoints(t)
+    io.write("\n\n")
   end
 end
 
+------- DEFINE GROUPS -------
+-- Input: list of (all) points and list of centroids (points)
+-- Output: list of groups (table of tables of points)
 function getGroups (pointList, centroidList)
-  -- Inicialização da tabela (senão table.insert() não funciona)
+  -- Table initialization (table.insert() can work then)
   groups = {}
   for i = 1, #centroidList do
     groups[i] = {}
   end
 
   for k, p in ipairs(pointList) do
-    nearCentroid = getNearest(centroidList, p)
-    centroidPosition = getPosition(centroidList, nearCentroid)
-    table.insert(groups[centroidPosition], p)
+    nearCentroid = getNearest(centroidList, p) -- get the nearest centroid from a particular point
+    centroidPosition = getPosition(centroidList, nearCentroid) -- get the centroid's "id" in the list
+    table.insert(groups[centroidPosition], p) -- insert the point into a group (by the centroid's id)
   end
   return groups
 end
 
 
-
-
-
-
 -------------- MAIN --------------
-
-
-------- OPEN FILE -------
-local inputFile = assert(io.open("entrada.txt", "r"))
-io.input(inputFile)
-
-print("\"entrada.txt\" file open.\n")
-
---print(#arg)
+---- Open input file
+io.input(assert(io.open("entrada.txt", 'r')))
+print("> \"entrada.txt\" open.\n")
+---- Get the number of groups and iterations from command line
 groups = tonumber(arg[1])
 iter = tonumber(arg[2])
-print("Quantidade de grupos:", groups)
-print("Quantidade de iteracoes:", iter)
+print("Number of groups:", groups)
+print("Number of iterations:", iter)
 
-------- READ POINTS -------
-allPoints = pointsFromFile()  -- INSERT THE OPEN FILE PROCESSES INTO THIS FUNCTION?
---printPoints(allPoints)
-selected = {}
+---- Read all points from input file
+allPoints = pointsFromFile()
 
-------- FIRST ITERATION -------
+---- FIRST ITERATION
 smallest = getSmallest(allPoints)
--- print("The smallest sum is from point:", smallest.l)
-table.insert(selected, smallest)
-
+selected = {smallest} -- initialization of the first centroids table
 mostDistant = getMostDistant(allPoints, selected, smallest)
--- print("The mostDistant from point", smallest.l, "is point", mostDistant.l)
-
 table.insert(selected, mostDistant)
 
-k = groups - 2
+k = groups - 2 -- get the other points that'll act as centroids
 while (k > 0) do
-  fcentroid = getCentroid(selected)
-  --print("f centroid", fcentroid[1])
-  --table.insert(selected, fcentroid)
+  fcentroid = getCentroid(selected) -- considers only the previously selected centroids
   new = getMostDistant(allPoints, selected, fcentroid)
-  -- print("ULtimo centro: ", new.l)
   table.insert(selected, new)
   k = k - 1
 end
 
--- print("The centroids are:")
--- printPoints(selected)
-previousGroupList = getGroups(allPoints, selected)
+previousGroupList = getGroups(allPoints, selected) -- first set of groups
 
--- print("Os grupos são:") -- Transformar este loop em uma função para grupos (usar a printPoints dentro dela)
--- for k, t in ipairs(previousGroupList) do
---   print("GROUP", k)
---   printPoints(t)
--- end
-
-e = 0
+---- OTHER ITERATIONS
+e = 0 -- counter of consecutive rounds the groups don't change
 i = iter - 1
 while i > 0 do
   for k, p in ipairs(previousGroupList) do
-    selected[k] = getCentroid(p)
+    selected[k] = getCentroid(p) -- recalculate centroids of each group
   end
-  currentGroupList = getGroups(allPoints, selected)
-  if isEqual(previousGroupList, currentGroupList) then e = e + 1
+  currentGroupList = getGroups(allPoints, selected) -- rearrange groups
+
+  if isEqual(previousGroupList, currentGroupList) then e = e + 1 -- analyse changes
   elseif e > 0 then e = e - 1
   end
   if e == 2 then
-    print("Iteracoes:", iter - i)
+    print("Iterations completed:", iter - i)
     break
   end
+
   previousGroupList = currentGroupList
   i = i - 1
 end
 
-print("Os grupos finais são:") -- Transformar este loop em uma função para grupos (usar a printPoints dentro dela)
-
+print("Done")
 io.output(assert(io.open("saida2.txt", 'w')))
-for k, t in ipairs(currentGroupList) do
-  -- print("GROUP", k)
-  printPoints(t)
-  io.write("\n\n")
-end
-
-
-
--- groups = getGroups(allPoints, centroids)
+print("\n> \"saida.txt\" open.")
+printGroups(currentGroupList)
 
 ------- END OF EXECUTION -------
 io.input():close()
 io.output():close()
-print("\nFile closed\n")
+print("\n> Files closed\nBye world\n")
