@@ -7,26 +7,40 @@
 
 ------- READ FROM FILE -------
 -- Output: list of points from input file
--- *the input is defined in "main"
 function pointsFromFile()
-  pointList = {}
-  i = 1
+  local pointList = {}
+  local i = 1
   for line in io.lines() do
-    point = {}
+    local point = {}
     for w in string.gmatch(line, "%d+%.?%d*") do   -- or "%S+" (everything that is not a space)
-      table.insert(point, tonumber(w))  -- store the coordenates
+      if tonumber(w) then table.insert(point, tonumber(w))  -- store the coordinates
+      else
+        print("There is an error in line", i); os.exit()
+      end
     end
-    point.l = i  -- store the line number
-    pointList[i] = point
+    point.l = i; pointList[i] = point  -- store the line number
     i = i + 1
-    size = i
   end
+  checkDimension(pointList)
   return pointList
 end
 
-------- SUM OF COORDENATES OF A POINT -------
+------- CHECK NUMBER OF COORDINATES FOR EACH POINT -------
+-- Input: list of points
+-- Output: none (program stops running is there's a problem)
+function checkDimension (pointList)
+  local dim = #pointList[1]
+  for _, p in ipairs(pointList) do
+    if dim ~= #p then
+      print("There's a problem with the dimension of point ", p.l)
+      os.exit()
+    end
+  end
+end
+
+------- SUM OF COORDINATES OF A POINT -------
 -- Input: point
--- Output: Sum of the coordenates
+-- Output: Sum of the coordinate
 function sumPoint (point)
   local sum = 0
   for r = 1, #point do
@@ -35,21 +49,18 @@ function sumPoint (point)
   return sum
 end
 
-------- SMALLEST SUM OF COORDENATES -------
+------- SMALLEST SUM OF COORDINATES -------
 -- Input: list of (all) points
--- Output: point that has the minimum sum of coordenates
+-- Output: point that has the minimum sum of coordinates
 function getSmallest (pointList)
-  small = {sumPoint(pointList[1]), pointList[1]} -- the first point is the default
+  local small = {sumPoint(pointList[1]), pointList[1]} -- the first point is the default
 
   for p = 2, #pointList do
-    sum = sumPoint(pointList[p])
+    local sum = sumPoint(pointList[p])
     if sum < small[1] then
       small[1] = sum
       small[2] = pointList[p]
-    elseif sum == small[1] then
-      c = 1
-      while pointList[p][c] == small[2][c] do c = c + 1 end
-      if pointList[p][c] < small[2][c] then small = {sum, pointList[p]} end
+    elseif sum == small[1] then small[2] = smallestCoord(small[2], pointList[p])
     end
   end
   return small[2]
@@ -59,11 +70,11 @@ end
 -- Input: list of points, centroids/points already selected and the reference point
 -- Output: point that is the most distant from the reference point
 function getMostDistant (pointList, previouslySelected, point)
-  distant = {0, point} -- the reference point itself is the default
+  local distant = {0, point} -- the reference point itself is the default
 
   for p = 1, #pointList do
     if not inList(previouslySelected, pointList[p]) then -- check if the point is not a part of centroids
-      distance = euclidean(pointList[p], point)
+      local distance = euclidean(pointList[p], point)
       if (distance > distant[1]) then
         distant[1] = distance
         distant[2] = pointList[p]
@@ -75,18 +86,18 @@ function getMostDistant (pointList, previouslySelected, point)
   return distant[2]
 end
 
-------- GET THE POINT THAT HAS THE SMALLEST COORDENATES (TIE BRAKER) -------
+------- GET THE POINT THAT HAS THE SMALLEST COORDINATES (TIE BRAKER) -------
 -- Input: two points to be compared (this function is a tie braker)
--- Output: the point which has the smallest coordenates
+-- Output: the point which has the smallest coordinates
 function smallestCoord (point1, point2)
-  c = 1
+  local c = 1
   while c <= #point1 do
     if point1[c] < point2[c] then return point1
     elseif point2[c] < point1[c] then return point2
     end
     c = c + 1
   end
-  return point1
+  return point2
 end
 
 ------- CHECK IF A POINT IS PART OF A LIST -------
@@ -118,7 +129,7 @@ function getNearest (pointList, point)
   local near = {euclidean(pointList[1], point), pointList[1]}
 
   for p = 2, #pointList do
-    distance = euclidean(pointList[p], point)
+    local distance = euclidean(pointList[p], point)
     if distance < near[1] then
       near[1] = distance
       near[2] = pointList[p]
@@ -133,7 +144,7 @@ end
 -- Input: two points
 -- Output: distance between them
 function euclidean(p1, p2)
-  sum = 0
+  local sum = 0
   for p = 1, #p1 do
     sum = sum + (p1[p] - p2[p])^2
   end
@@ -144,10 +155,10 @@ end
 -- Input: list of points
 -- Output: centroid
 function getCentroid (pointList)
-  centroid = {}
-  dimensions = #pointList[1]
+  local centroid = {}
+  local dimensions = #pointList[1]
   for i = 1, dimensions do
-    sum = 0
+    local sum = 0
     for p = 1, #pointList do sum = sum + pointList[p][i] end
     centroid[i] = sum/#pointList
   end
@@ -170,9 +181,10 @@ end
 -- Input: two lists
 -- Output: True of False
 function isEqual (pointList1, pointList2)
-  len = #pointList1
+  local len = #pointList1 -- length of list
+  local dim = #pointList1[1] -- length/dimensions of a point
   for i = 1, len do
-    for j = 1, len do
+    for j = 1, dim do
       if pointList1[i][j] ~= pointList2[i][j] then return false end
     end
   end
@@ -206,7 +218,7 @@ end
 -- Output: list of groups (table of tables of points)
 function getGroups (pointList, centroidList)
   -- Table initialization (table.insert() can work then)
-  groups = {}
+  local groups, nearCentroid, centroidPosition = {}, {}, {}
   for i = 1, #centroidList do
     groups[i] = {}
   end
@@ -223,6 +235,7 @@ end
 -- Input: number of groups (it), list of centroids and list of (all) points
 -- Output: list of groups
 function getFirstGroups (it, centroidList, pointList)
+  local centroid, otherCentroid = {}, {}
   while (it > 0) do
     centroid = getCentroid(centroidList) -- considers only the previously selected centroids
     otherCentroid = getMostDistant(pointList, centroidList, centroid)
@@ -236,27 +249,28 @@ end
 ------- FINAL GROUP -------
 -- Input: max number of iterations, list of first groups and list of (all) points
 -- Output: list of final groups
-function getFinalGroup (it, groupList, pointList)
-  e = 0 -- counter of consecutive rounds where groups don't change
-  i = it - 1 -- counter of iterations
-  newCentroids = {}
+function getFinalGroup (n, groupList, pointList)
+  local e = 0 -- counter of consecutive rounds where groups don't change
+  local newCentroids, currentGroupList = {}, {}
 
-  while i > 0 do
+  while n > 0 do
     for k, p in ipairs(groupList) do
       newCentroids[k] = getCentroid(p) -- recalculate centroids of each group
     end
     currentGroupList = getGroups(pointList, newCentroids) -- rearrange groups
 
-    if isEqual(groupList, currentGroupList) then e = e + 1 -- analyze changes
-    elseif e > 0 then e = e - 1
-    end
-    if e == 2 then
-      print("Iterations completed:", it - i)
-      break
+    if isEqual(groupList, currentGroupList) then -- verify if the groups change
+      e = e + 1
+      if e == 2 then
+        print("Iterations completed:", iter - n + 1)
+        break
+      end
+    elseif e > 0 then
+      e = e - 1
     end
 
     groupList = currentGroupList
-    i = i - 1
+    n = n - 1
   end
 
   return currentGroupList
@@ -282,10 +296,9 @@ table.insert(selected, getMostDistant(allPoints, selected, selected[1])) -- most
 previousGroupList = getFirstGroups(groupsNum - 2, selected, allPoints) -- first set of groups
 
 ---- Other Iterations
-finalGroup = getFinalGroup(iter, previousGroupList, allPoints)
-print("Done")
+finalGroup = getFinalGroup(iter - 1, previousGroupList, allPoints)
 
-io.output(assert(io.open("saida2.txt", 'w')))
+io.output(assert(io.open("saida.txt", 'w')))
 print("\n> \"saida.txt\" open.")
 printGroups(finalGroup)
 
