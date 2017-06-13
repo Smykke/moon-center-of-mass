@@ -54,7 +54,7 @@ end
 -- Output: Sum of the coordinate
 function points.sumPoint (point)
   local sum = 0
-  for r = 1, #point do
+  for r = 1, (#point - 1) do
     sum = sum + point[r]
   end
   return sum
@@ -131,18 +131,21 @@ end
 -- Input: list of points and a reference point
 -- Output: a point from the list that is nearest from reference point
 function points.getNearest (pointList, point)
-  local near = {points.euclidean(pointList[1], point), pointList[1]}
+  local near = {points.euclidean(pointList[1], point), pointList[1], 1}
 
   for p = 2, #pointList do
     local distance = points.euclidean(pointList[p], point)
     if distance < near[1] then
       near[1] = distance
       near[2] = pointList[p]
-    elseif distance == near[1] then near[2] = points.smallestCoord(near[2], pointList[p])
+      near[3] = p
+    elseif distance == near[1] then
+      near[2] = points.smallestCoord(near[2], pointList[p])
+      near[3] = p
     end
   end
 
-  return near[2]
+  return near[3]
 end
 
 
@@ -152,11 +155,14 @@ end
 function points.getCentroid (pointList)
   local centroid = {}
   local dimensions = #pointList[1]
+  --print(dimensions)
+  local sum = 0
   for i = 1, dimensions do
-    local sum = 0
     for p = 1, #pointList do sum = sum + pointList[p][i] end
     centroid[i] = sum/#pointList
+    sum = 0
   end
+  --print(#centroid)
   return centroid
 end
 

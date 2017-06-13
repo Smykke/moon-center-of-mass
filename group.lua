@@ -11,6 +11,7 @@ function group.getFirstGroups (it, centroidList, pointList)
     table.insert(centroidList, otherCentroid)
     it = it - 1
   end
+  points.printPoints(centroidList)
   return group.getGroups(pointList, centroidList)
 end
 
@@ -24,6 +25,7 @@ function group.getFinalGroup (n, groupList, pointList)
 
   while i > 0 do
     for k, p in ipairs(groupList) do
+      --print("grupo", k); --points.printPoints(p)
       newCentroids[k] = points.getCentroid(p) -- recalculate centroids of each group
     end
     currentGroupList = group.getGroups(pointList, newCentroids) -- rearrange groups
@@ -31,7 +33,7 @@ function group.getFinalGroup (n, groupList, pointList)
     if group.isEqual(groupList, currentGroupList) then -- verify if the groups change
       e = e + 1
       if e == 2 then
-        print("Iterations completed:", n - i + 1)
+         print("Iterations completed:", n - i + 1)
         break
       end
     elseif e > 0 then
@@ -54,10 +56,10 @@ function group.getGroups (pointList, centroidList)
   for i = 1, #centroidList do
     groups[i] = {}
   end
-
+  --print("tam cecntroide", #centroidList, "tamanho grupos", #groups)
   for k, p in ipairs(pointList) do
-    nearCentroid = points.getNearest(centroidList, p) -- get the nearest centroid from a particular point
-    centroidPosition = points.getPosition(centroidList, nearCentroid) -- get the centroid's "id" in the list
+    centroidPosition = points.getNearest(centroidList, p) -- get the nearest centroid from a particular point
+    --centroidPosition = points.getPosition(centroidList, nearCentroid) -- get the centroid's "id" in the list
     table.insert(groups[centroidPosition], p) -- insert the point into a group (by the centroid's id)
   end
   return groups
