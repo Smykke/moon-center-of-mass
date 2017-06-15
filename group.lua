@@ -11,7 +11,7 @@ function group.getFirstGroups (it, centroidList, pointList)
     table.insert(centroidList, otherCentroid)
     it = it - 1
   end
-  points.printPoints(centroidList)
+  points.printPoints(centroidList) -- Número da linha dos primeiros centróides
   return group.getGroups(pointList, centroidList)
 end
 
@@ -25,11 +25,13 @@ function group.getFinalGroup (n, groupList, pointList)
 
   while i > 0 do
     for k, p in ipairs(groupList) do
-      --print("grupo", k); --points.printPoints(p)
       newCentroids[k] = points.getCentroid(p) -- recalculate centroids of each group
     end
     currentGroupList = group.getGroups(pointList, newCentroids) -- rearrange groups
-
+    -- print("Iter:", n - i + 1);
+    -- for k, c in ipairs(newCentroids) do -- Número da linha dos primeiros centróides
+    --   print(c[1])
+    -- end
     if group.isEqual(groupList, currentGroupList) then -- verify if the groups change
       e = e + 1
       if e == 2 then

@@ -21,10 +21,6 @@ local allPoints = p.pointsFromFile() -- Read all points from input file
 local selected = {p.getSmallest(allPoints)} -- "smallest" point
 table.insert(selected, p.getMostDistant(allPoints, selected, selected[1])) -- most distant point
 local previousGroupList = g.getFirstGroups(groupsNum - 2, selected, allPoints) -- first set of groups
-print("quantidade de grupos:", #previousGroupList)
-for m, n in ipairs(previousGroupList) do
-  print("grupo", m, ":", n[1])
-end
 ---- Other Iterations
 local finalGroup = g.getFinalGroup(iter, previousGroupList, allPoints)
 

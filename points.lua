@@ -54,7 +54,7 @@ end
 -- Output: Sum of the coordinate
 function points.sumPoint (point)
   local sum = 0
-  for r = 1, (#point - 1) do
+  for r = 1, #point do
     sum = sum + point[r]
   end
   return sum
@@ -73,7 +73,7 @@ function points.getMostDistant (pointList, previouslySelected, point)
         distant[1] = distance
         distant[2] = pointList[p]
       -- in case of same distance:
-    elseif distance == distant[1] then distant[2] = points.smallestCoord(distant[2], pointList[p])
+      elseif distance == distant[1] then distant[2] = points.smallestCoord(distant[2], pointList[p])
       end
     end
   end
@@ -158,7 +158,8 @@ function points.getCentroid (pointList)
   --print(dimensions)
   local sum = 0
   for i = 1, dimensions do
-    for p = 1, #pointList do sum = sum + pointList[p][i] end
+    for _, p in ipairs(pointList) do sum = sum + p[i] end
+    -- for p = 1, #pointList do sum = sum + pointList[p][i] end
     centroid[i] = sum/#pointList
     sum = 0
   end
