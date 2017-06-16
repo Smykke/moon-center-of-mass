@@ -124,7 +124,7 @@ function points.smallestCoord (point1, point2)
     end
     c = c + 1
   end
-  return point2
+  return point1
 end
 
 ------- GET THE NEAREST POINT -------
@@ -155,15 +155,12 @@ end
 function points.getCentroid (pointList)
   local centroid = {}
   local dimensions = #pointList[1]
-  --print(dimensions)
   local sum = 0
   for i = 1, dimensions do
     for _, p in ipairs(pointList) do sum = sum + p[i] end
-    -- for p = 1, #pointList do sum = sum + pointList[p][i] end
     centroid[i] = sum/#pointList
     sum = 0
   end
-  --print(#centroid)
   return centroid
 end
 

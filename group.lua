@@ -11,7 +11,6 @@ function group.getFirstGroups (it, centroidList, pointList)
     table.insert(centroidList, otherCentroid)
     it = it - 1
   end
-  points.printPoints(centroidList) -- Número da linha dos primeiros centróides
   return group.getGroups(pointList, centroidList)
 end
 
@@ -28,10 +27,6 @@ function group.getFinalGroup (n, groupList, pointList)
       newCentroids[k] = points.getCentroid(p) -- recalculate centroids of each group
     end
     currentGroupList = group.getGroups(pointList, newCentroids) -- rearrange groups
-    -- print("Iter:", n - i + 1);
-    -- for k, c in ipairs(newCentroids) do -- Número da linha dos primeiros centróides
-    --   print(c[1])
-    -- end
     if group.isEqual(groupList, currentGroupList) then -- verify if the groups change
       e = e + 1
       if e == 2 then
@@ -58,7 +53,6 @@ function group.getGroups (pointList, centroidList)
   for i = 1, #centroidList do
     groups[i] = {}
   end
-  --print("tam cecntroide", #centroidList, "tamanho grupos", #groups)
   for k, p in ipairs(pointList) do
     centroidPosition = points.getNearest(centroidList, p) -- get the nearest centroid from a particular point
     --centroidPosition = points.getPosition(centroidList, nearCentroid) -- get the centroid's "id" in the list
@@ -71,14 +65,13 @@ end
 -- Input: two lists
 -- Output: True of False
 function group.isEqual (groupList1, groupList2)
-  local len = #groupList1 -- length of list of groups
-  for i = 1, len do
-    local dim = #groupList1[i] -- length of a group
-    for j = 1, dim do
-      if groupList1[i][j] ~= groupList2[i][j] then return false end
+  for i = 1, #groupList1 do
+    if #groupList1[i] ~= #groupList2[i] then return false end
+    for j = 1, #groupList1[i] do
+      if groupList1[i][j].l ~= groupList2[i][j].l then return false end
     end
-  end
-  return true
+   end
+   return true
 end
 
 ------- PRINT GROUPS -------
